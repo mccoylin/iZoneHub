@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>包廂預約</title>
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+</head>
+<body class="index-page">
+
+  <header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="index.html" class="logo d-flex align-items-center">
+        <i class="bi bi-box-seam"></i>
+        <h1 class="sitename">iZoneHub</h1>
+      </a>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="section">
+      <div class="container">
+        <div class="section-title text-center">
+          <h2>包廂預約（整點選擇）</h2>
+          <p>請選擇開始與結束時間（日期＋小時）</p>
+        </div>
+
+        <div id="selectedRoom" class="mb-4 text-center">
+          <!-- 顯示選擇的房間 -->
+           <h2 id="selectedRoomName"></h2>
+          <img id="selectedRoomImage" src="" class="img-fluid rounded-3 mb-3" style="max-width:400px;">
+        </div>
+
+        <form id="bookingForm" class="php-email-form">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="startDate">開始日期</label>
+              <input type="date" id="startDate" name="startDate" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="startHour">開始時間（整點）</label>
+              <select id="startHour" name="startHour" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="endDate">結束日期</label>
+              <input type="date" id="endDate" name="endDate" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="endHour">結束時間（整點）</label>
+              <select id="endHour" name="endHour" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label>試算金額</label>
+            <div id="priceDisplay" class="fs-4">$0</div>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn custom-gold-btn">立即結帳</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const roomName = params.get('roomName');
+    const roomImage = params.get('roomImage');
+    document.getElementById('selectedRoomName').innerText = roomName;
+    document.getElementById('selectedRoomImage').src = roomImage;
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get('room');
+
+    const rooms = {
+      room1: { name: '商務雅集', img: 'assets/img/restaurant/room1.png', price: 500 },
+      room2: { name: '休閒家庭', img: 'assets/img/restaurant/room2.png', price: 400 },
+      room3: { name: '夜光派對', img: 'assets/img/restaurant/room3.png', price: 600 }
+    };
+
+    const selected = rooms[room];
+    if(selected){
+      document.getElementById('selectedRoom').innerHTML = `
+        <h4>${selected.name}</h4>
+        <img src="${selected.img}" class="img-fluid rounded mb-3" style="max-width:300px;">
+        <p>每小時 $${selected.price}</p>
+      `;
+    }
+
+    // 產生整點選單
+    function populateHours(selectId){
+      const select = document.getElementById(selectId);
+      select.innerHTML = '';
+      for(let i=0; i<24; i++){
+        const h = i.toString().padStart(2,'0');
+        const option = document.createElement('option');
+        option.value = h;
+        option.textContent = `${h}:00`;
+        select.appendChild(option);
+      }
+    }
+
+    populateHours('startHour');
+    populateHours('endHour');
+
+    const priceDisplay = document.getElementById('priceDisplay');
+
+    function calculatePrice(){
+      const startDate = document.getElementById('startDate').value;
+      const startHour = document.getElementById('startHour').value;
+      const endDate = document.getElementById('endDate').value;
+      const endHour = document.getElementById('endHour').value;
+
+      if(startDate && endDate){
+        const start = new Date(`${startDate}T${startHour}:00:00`);
+        const end = new Date(`${endDate}T${endHour}:00:00`);
+
+        if(end > start){
+          const diffMs = end - start;
+          const hours = diffMs / (1000 * 60 * 60);
+          priceDisplay.textContent = `$${hours * selected.price}`;
+        }else{
+          priceDisplay.textContent = '$0';
+        }
+      }
+    }
+
+    document.getElementById('startDate').addEventListener('change', calculatePrice);
+    document.getElementById('endDate').addEventListener('change', calculatePrice);
+    document.getElementById('startHour').addEventListener('change', calculatePrice);
+    document.getElementById('endHour').addEventListener('change', calculatePrice);
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const startDate = document.getElementById('startDate').value;
+      const startHour = document.getElementById('startHour').value;
+      const endDate = document.getElementById('endDate').value;
+      const endHour = document.getElementById('endHour').value;
+
+      const start = new Date(`${startDate}T${startHour}:00:00`);
+      const end = new Date(`${endDate}T${endHour}:00:00`);
+
+      if(end <= start){
+        alert('結束時間必須大於開始時間');
+        return;
+      }
+
+      const hours = (end - start) / (1000 * 60 * 60);
+      const total = hours * selected.price;
+
+      alert(`已預約：\n房間：${selected.name}\n從：${startDate} ${startHour}:00\n到：${endDate} ${endHour}:00\n總時數：${hours} 小時\n總金額：$${total}`);
+      // 可串接後端 API
+    });
+  </script>
+
+</body>
+</html>
