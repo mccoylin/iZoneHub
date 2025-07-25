@@ -6,6 +6,176 @@
 * License: https://bootstrapmade.com/license/
 */
 
+// ==========  自訂腳本開始 ==========
+
+const authModalLabel = document.getElementById('authModalLabel');
+const signInForm = document.getElementById('signInForm');
+const signUpForm = document.getElementById('signUpForm');
+const switchToSignUp = document.getElementById('switchToSignUp');
+const switchToSignIn = document.getElementById('switchToSignIn');
+const userGreeting = document.getElementById('userGreeting');
+const userName = document.getElementById('userName');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// 表單切換
+switchToSignUp.addEventListener('click', function(e){
+    e.preventDefault();
+    signInForm.classList.add('d-none');
+    signUpForm.classList.remove('d-none');
+    authModalLabel.textContent = '註冊 iZoneHub';
+});
+
+switchToSignIn.addEventListener('click', function(e){
+    e.preventDefault();
+    signUpForm.classList.add('d-none');
+    signInForm.classList.remove('d-none');
+    authModalLabel.textContent = '登入 iZoneHub';
+});
+
+// 註冊表單處理
+signUpForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    console.log('[LOG] 註冊表單送出:', signUpForm);
+    const formData = new FormData(signUpForm);
+    const userData = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password')
+    };
+    console.log('[LOG] 註冊資料:', userData);
+    // 發送註冊請求到後台
+    fetch('/api/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => {
+        console.log('[LOG] 註冊 API 回應:', response);
+        // 新增：將回應寫入 log
+        response.clone().json().then(data => {
+            console.log('[LOG] 後端回應內容:', data);
+        }).catch(() => {
+            response.clone().text().then(text => {
+                console.log('[LOG] 後端回應文字:', text);
+            });
+        });
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // 註冊成功，更新使用者介面
+            updateUserUI(data.user.name);
+
+            // 關閉模態框
+            const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+            authModal.hide();
+
+            // 重置表單
+            signUpForm.reset();
+
+            // 顯示成功訊息
+            alert('註冊成功！歡迎加入 iZoneHub');
+        } else {
+            // 顯示錯誤訊息
+            alert(data.message || '註冊失敗，請稍後再試');
+        }
+    })
+    .catch(error => {
+        console.error('[LOG] 註冊 API 錯誤:', error);
+        alert('註冊過程中發生錯誤，請稍後再試');
+    });
+});
+
+// 登入表單處理
+signInForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(signInForm);
+    const loginData = {
+        email: formData.get('email'),
+        password: formData.get('password')
+    };
+
+    // 發送登入請求到後台
+    fetch('/api/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 登入成功，更新使用者介面
+            updateUserUI(data.user.name);
+
+            // 關閉模態框
+            const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+            authModal.hide();
+
+            // 重置表單
+            signInForm.reset();
+        } else {
+            // 顯示錯誤訊息
+            alert(data.message || '登入失敗，請檢查您的帳號密碼');
+        }
+    })
+    .catch(error => {
+        console.error('Login error:', error);
+        alert('登入過程中發生錯誤，請稍後再試');
+    });
+});
+
+// 更新使用者介面
+function updateUserUI(name) {
+    userName.textContent = name;
+    userGreeting.classList.remove('d-none');
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+
+    // 儲存使用者資訊到 localStorage
+    localStorage.setItem('currentUser', name);
+}
+
+// 登出功能
+logoutBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+
+    // 發送登出請求到後台
+    fetch('/api/logout', {
+        method: 'POST'
+    })
+    .then(() => {
+        // 重置使用者介面
+        userGreeting.classList.add('d-none');
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+
+        // 清除本地儲存
+        localStorage.removeItem('currentUser');
+
+        alert('已成功登出');
+    })
+    .catch(error => {
+        console.error('Logout error:', error);
+    });
+});
+
+// 頁面載入時檢查使用者狀態
+document.addEventListener('DOMContentLoaded', function() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        updateUserUI(savedUser);
+    }
+});
+
+// ==========  自訂腳本結束 ==========
+
+
 (function() {
   "use strict";
 
@@ -261,6 +431,5 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = url;
   });
 });
-
 
 
