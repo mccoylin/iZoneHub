@@ -1,0 +1,37 @@
+`FormData` 是一個內建的 JavaScript 物件，提供了一種方便的方式來建構一組代表表單欄位及其值的鍵/值對。它可以用於使用 `fetch` 或 `XMLHttpRequest` 異步發送表單資料。
+
+以下是使用 `FormData` 的主要方面和優點：
+
+1.  **輕鬆收集資料**：它自動從表單欄位（包括 `<input>`、`<textarea>` 和 `<select>` 元素）收集資料。
+2.  **處理檔案**：它支援包含檔案，這對於檔案上傳至關重要。
+3.  **異步發送**：它被設計為與異步請求無縫協作，允許您發送表單資料而無需重新載入頁面。
+4.  **鍵/值對**：它將資料結構化為鍵/值對，使其易於在伺服器端處理。
+
+這是一個如何使用 `FormData` 的基本範例：
+
+```javascript
+const form = document.getElementById('myForm');
+
+form.addEventListener('submit', function(event) {
+  event.preventDefault(); // 防止預設的表單提交
+
+  const formData = new FormData(form);
+
+  fetch('/submit-form', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('成功:', data);
+  })
+  .catch(error => {
+    console.error('錯誤:', error);
+  });
+});
+```
+
+在這個範例中，`new FormData(form)` 自動從表單中收集所有資料，然後可以使用 `fetch` 將其發送到伺服器。
+
+
+
