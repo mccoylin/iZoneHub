@@ -5,6 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 import com.iZoneHub.demo.model.Rooms;
 import com.iZoneHub.demo.repository.RoomRepository;
 
@@ -27,7 +29,9 @@ public class RoomController
     @GetMapping("/")
     public String home(Model model)
     {
-        model.addAttribute("rooms", roomRepository.findAll());
+        List<Rooms> rooms = roomRepository.findAll();
+        model.addAttribute("rooms", rooms);
+
         return "index";
     }
     // 上述的程式碼可以這樣理解：
