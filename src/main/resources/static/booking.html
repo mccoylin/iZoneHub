@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,7 @@
 
   <header id="header" class="header d-flex align-items-center sticky-top">
     <div class="container d-flex justify-content-between align-items-center">
-      <a href="index.html" class="logo d-flex align-items-center">
+      <a th:href="@{/index.html}" class="logo d-flex align-items-center">
         <i class="bi bi-box-seam"></i>
         <h1 class="sitename">iZoneHub</h1>
       </a>
