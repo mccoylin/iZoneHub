@@ -35,10 +35,7 @@ public class UserService
         }
 
         // 2. 建立新的 User 物件
-        User newUser = new User();
-        newUser.setName(name);
-        newUser.setEmail(email);
-        newUser.setPassword(password);
+        User newUser = new User(name, email, password);
 
         // 3. 儲存到資料庫
         userRepository.save(newUser);
