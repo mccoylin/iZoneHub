@@ -8,168 +8,206 @@
 
 // ==========  自訂腳本開始 ==========
 
-const authModalLabel = document.getElementById('authModalLabel');
-const signInForm = document.getElementById('signInForm');
-const signUpForm = document.getElementById('signUpForm');
-const switchToSignUp = document.getElementById('switchToSignUp');
-const switchToSignIn = document.getElementById('switchToSignIn');
-const userGreeting = document.getElementById('userGreeting');
-const userName = document.getElementById('userName');
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
+/**
+ * ===================================================================
+ * iZoneHub - Authentication & UI Management (Refactored & Final)
+ * ===================================================================
+ */
+document.addEventListener('DOMContentLoaded', () => {
 
-// 表單切換
-switchToSignUp.addEventListener('click', function(e){
-    e.preventDefault();
-    signInForm.classList.add('d-none');
-    signUpForm.classList.remove('d-none');
-    authModalLabel.textContent = '註冊 iZoneHub';
-});
+    // --- 1. 元素選擇器 (集中管理) ---
+    const authModalLabel = document.getElementById('authModalLabel');
+    const signInForm = document.getElementById('signInForm');
+    const signUpForm = document.getElementById('signUpForm');
+    const switchToSignUp = document.getElementById('switchToSignUp');
+    const switchToSignIn = document.getElementById('switchToSignIn');
+    const userGreeting = document.getElementById('userGreeting');
+    const userNameSpan = document.getElementById('userName');
+    const passwordInput = signInForm.querySelector('input[name="password"]');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authAlert = document.getElementById('authAlert'); // 假設你的 Modal 中有這個 div 用於顯示錯誤
 
-switchToSignIn.addEventListener('click', function(e){
-    e.preventDefault();
-    signUpForm.classList.add('d-none');
-    signInForm.classList.remove('d-none');
-    authModalLabel.textContent = '登入 iZoneHub';
-});
+    // --- 2. UI 更新函式 ---
 
-// 註冊表單處理
-signUpForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    console.log('[LOG] 註冊表單送出:', signUpForm);
-    const formData = new FormData(signUpForm);
-    const userData = {
-        name: formData.get('name'),
-        email: formData.get('email'),
-        password: formData.get('password')
-    };
-    console.log('[LOG] 註冊資料:', userData);
-    // 發送註冊請求到後台
-    fetch('/api/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
-    })
-    .then(response => {
-        console.log('[LOG] 註冊 API 回應:', response);
-        // 新增：將回應寫入 log
-        response.clone().json().then(data => {
-            console.log('[LOG] 後端回應內容:', data);
-        }).catch(() => {
-            response.clone().text().then(text => {
-                console.log('[LOG] 後端回應文字:', text);
-            });
-        });
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // 註冊成功，更新使用者介面
-            updateUserUI(data.user.name);
+    // 更新 UI 為「已登入」狀態
+    function showLoggedInState(name) {
+        userNameSpan.textContent = name;
+        userGreeting.classList.remove('d-none');
 
-            // 關閉模態框
-            const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
-            authModal.hide();
+        // 隱藏登入按鈕，顯示登出按鈕
+        loginBtn.classList.add('d-none');
+        logoutBtn.classList.remove('d-none');
+    }
 
-            // 重置表單
-            signUpForm.reset();
-
-            // 顯示成功訊息
-            alert('註冊成功！歡迎加入 iZoneHub');
-        } else {
-            // 顯示錯誤訊息
-            alert(data.message || '註冊失敗，請稍後再試');
-        }
-    })
-    .catch(error => {
-        console.error('[LOG] 註冊 API 錯誤:', error);
-        alert('註冊過程中發生錯誤，請稍後再試');
-    });
-});
-
-// 登入表單處理
-signInForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(signInForm);
-    const loginData = {
-        email: formData.get('email'),
-        password: formData.get('password')
-    };
-
-    // 發送登入請求到後台
-    fetch('/api/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // 登入成功，更新使用者介面
-            updateUserUI(data.user.name);
-
-            // 關閉模態框
-            const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
-            authModal.hide();
-
-            // 重置表單
-            signInForm.reset();
-        } else {
-            // 顯示錯誤訊息
-            alert(data.message || '登入失敗，請檢查您的帳號密碼');
-        }
-    })
-    .catch(error => {
-        console.error('Login error:', error);
-        alert('登入過程中發生錯誤，請稍後再試');
-    });
-});
-
-// 更新使用者介面
-function updateUserUI(name) {
-    userName.textContent = name;
-    userGreeting.classList.remove('d-none');
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-
-    // 儲存使用者資訊到 localStorage
-    localStorage.setItem('currentUser', name);
-}
-
-// 登出功能
-logoutBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-
-    // 發送登出請求到後台
-    fetch('/api/logout', {
-        method: 'POST'
-    })
-    .then(() => {
-        // 重置使用者介面
+    // 重設 UI 為「已登出」狀態
+    function showLoggedOutState() {
         userGreeting.classList.add('d-none');
-        loginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
+        userNameSpan.textContent = '';
 
-        // 清除本地儲存
-        localStorage.removeItem('currentUser');
+        // 顯示登入按鈕，隱藏登出按鈕
+        loginBtn.classList.remove('d-none');
+        logoutBtn.classList.add('d-none');
+    }
 
-        alert('已成功登出');
-    })
-    .catch(error => {
-        console.error('Logout error:', error);
-    });
-});
+    // --- 3. 事件監聽 ---
 
-// 頁面載入時檢查使用者狀態
-document.addEventListener('DOMContentLoaded', function() {
+    // 監聽登入表單
+    if (signInForm) {
+        // 當使用者重新輸入時，自動隱藏錯誤訊息
+        signInForm.addEventListener('input', () => {
+            if(authAlert) {
+                authAlert.classList.add('d-none');
+            }
+        });
+
+        signInForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if(authAlert) {
+                authAlert.classList.add('d-none');
+            }
+
+            const formData = new FormData(signInForm);
+            const loginData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginData),
+                });
+                const result = await response.json();
+
+                if (response.ok && result.userName) {
+                    // 登入成功
+                    localStorage.setItem('currentUser', result.userName);
+                    showLoggedInState(result.userName);
+
+                    const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+                    authModal.hide();
+                    signInForm.reset();
+                } else {
+                    // 登入失敗
+                    if(authAlert) {
+                        authAlert.textContent = result.message || '登入失敗，請檢查您的帳號密碼。';
+                        authAlert.classList.remove('d-none');
+                        if (passwordInput) {
+                            passwordInput.value = ''; // 清空密碼欄位
+                        }
+                    } else {
+                        alert(result.message || '登入失敗，請檢查您的帳號密碼。');
+                    }
+                }
+            } catch (error) {
+                console.error('Login request error:', error);
+                if(authAlert) {
+                    authAlert.textContent = '登入時發生網路錯誤，請稍後再試。';
+                    authAlert.classList.remove('d-none');
+                } else {
+                    alert('登入時發生網路錯誤，請稍後再試。');
+                }
+            }
+        });
+    }
+
+    // 監聽註冊表單
+    if (signUpForm) {
+        // 當使用者重新輸入時，自動隱藏錯誤訊息
+        signUpForm.addEventListener('input', () => {
+            if(authAlert) {
+                authAlert.classList.add('d-none');
+            }
+        });
+
+        signUpForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if(authAlert) {
+                authAlert.classList.add('d-none');
+            }
+
+            const formData = new FormData(signUpForm);
+            const registerData = Object.fromEntries(formData.entries());
+
+            if (registerData.password !== registerData.confirm_password) {
+                if(authAlert) {
+                    authAlert.textContent = '兩次輸入的密碼不一致。';
+                    authAlert.classList.remove('d-none');
+                } else {
+                    alert('兩次輸入的密碼不一致。');
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(registerData),
+                });
+                const result = await response.json();
+
+                if (response.status === 201) { // 201 Created
+                    alert('註冊成功！請使用您的新帳號登入。');
+                    switchToSignIn.click(); // 自動切換回登入表單
+                    signUpForm.reset();
+                } else {
+                    if(authAlert) {
+                        authAlert.textContent = result.message || '註冊失敗，請稍後再試。';
+                        authAlert.classList.remove('d-none');
+                    } else {
+                        alert(result.message || '註冊失敗，請稍後再試。');
+                    }
+                }
+            } catch (error) {
+                console.error('Register request error:', error);
+                if(authAlert) {
+                    authAlert.textContent = '註冊時發生網路錯誤，請稍後再試。';
+                    authAlert.classList.remove('d-none');
+                } else {
+                    alert('註冊時發生網路錯誤，請稍後再試。');
+                }
+            }
+        });
+    }
+
+    // 監聽登出按鈕
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            localStorage.removeItem('currentUser');
+            showLoggedOutState();
+            // 可選：你可以在此處呼叫後端的 /api/logout 來清除伺服器 session
+        });
+    }
+
+    // 監聽 Modal 中的表單切換連結
+    if (switchToSignUp) {
+        switchToSignUp.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(authAlert) {
+                authAlert.classList.add('d-none');
+            }
+            signInForm.classList.add('d-none');
+            signUpForm.classList.remove('d-none');
+            authModalLabel.textContent = '註冊 iZoneHub';
+        });
+    }
+    if (switchToSignIn) {
+        switchToSignIn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(authAlert) {
+                authAlert.classList.add('d-none');
+            }
+            signUpForm.classList.add('d-none');
+            signInForm.classList.remove('d-none');
+            authModalLabel.textContent = '登入 iZoneHub';
+        });
+    }
+
+    // --- 4. 頁面載入時檢查登入狀態 ---
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
-        updateUserUI(savedUser);
+        showLoggedInState(savedUser);
     }
 });
 
@@ -229,32 +267,32 @@ document.addEventListener('DOMContentLoaded', function() {
       e.stopImmediatePropagation();
     });
   });
-  /**
-   * Auth Modal switch login/sign up
-   */
-document.addEventListener('DOMContentLoaded', function() {
-  const authModalLabel = document.getElementById('authModalLabel');
-  const signInForm = document.getElementById('signInForm');
-  const signUpForm = document.getElementById('signUpForm');
-  const switchToSignUp = document.getElementById('switchToSignUp');
-  const switchToSignIn = document.getElementById('switchToSignIn');
-
-  if (switchToSignUp && switchToSignIn) {
-    switchToSignUp.addEventListener('click', function(e){
-      e.preventDefault();
-      signInForm.classList.add('d-none');
-      signUpForm.classList.remove('d-none');
-      authModalLabel.textContent = '註冊 iZoneHub';
-    });
-
-    switchToSignIn.addEventListener('click', function(e){
-      e.preventDefault();
-      signUpForm.classList.add('d-none');
-      signInForm.classList.remove('d-none');
-      authModalLabel.textContent = '登入 iZoneHub';
-    });
-  }
-});
+//   /**
+//    * Auth Modal switch login/sign up
+//    */
+// document.addEventListener('DOMContentLoaded', function() {
+//   const authModalLabel = document.getElementById('authModalLabel');
+//   const signInForm = document.getElementById('signInForm');
+//   const signUpForm = document.getElementById('signUpForm');
+//   const switchToSignUp = document.getElementById('switchToSignUp');
+//   const switchToSignIn = document.getElementById('switchToSignIn');
+//
+//   if (switchToSignUp && switchToSignIn) {
+//     switchToSignUp.addEventListener('click', function(e){
+//       e.preventDefault();
+//       signInForm.classList.add('d-none');
+//       signUpForm.classList.remove('d-none');
+//       authModalLabel.textContent = '註冊 iZoneHub';
+//     });
+//
+//     switchToSignIn.addEventListener('click', function(e){
+//       e.preventDefault();
+//       signUpForm.classList.add('d-none');
+//       signInForm.classList.remove('d-none');
+//       authModalLabel.textContent = '登入 iZoneHub';
+//     });
+//   }
+// });
 
 
   /**
