@@ -79,11 +79,12 @@ public class UserController
         try
         {
             // 將認證邏輯委託給 UserService
-            userService.authenticateUser(email, password);
+            User authenticatedUser = userService.authenticateUser(email, password);
 
             // 認證成功
             log.info("使用者 {} {} 登入成功！", email, password);
-            return ResponseEntity.ok(Map.of("message", "使用者 " + email + " 登入成功！"));
+            // return ResponseEntity.ok(Map.of("message", "使用者 " + email + " 登入成功！"));
+            return ResponseEntity.ok(Map.of( "message", "登入成功！", "userName", authenticatedUser.getName(), "email", authenticatedUser.getEmail()));    // 把名字加進來
         }
         catch (IllegalStateException e)
         {
@@ -129,4 +130,3 @@ public class UserController
     // }
 
 }
-
