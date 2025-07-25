@@ -55,6 +55,51 @@ public class UserController
         }
     }
 
+
+    /**
+     * 處理使用者登入請求，從 JSON 請求體中接收資料並存入 Map。
+     * @param loginData 一個包含 "email" 和 "password" 鍵的 Map。
+     * @return 成功時回傳 200 OK 和成功訊息；失敗時回傳 401 Unauthorized。
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginData)
+    {
+        log.info("接收到登入請求，Email: {}, Pwd: {}", loginData.get("email"), loginData.get("password"));
+
+        // 從 Map 中取出 email 和 password
+        String email = loginData.get("email");
+        String password = loginData.get("password");
+
+        // 檢查 email 和 password 是否為空
+        if (email == null || password == null)
+        {
+            return ResponseEntity.badRequest().body(Map.of("message", "請求中缺少 'email' 或 'password'。"));
+        }
+
+        try
+        {
+            // 將認證邏輯委託給 UserService
+            userService.authenticateUser(email, password);
+
+            // 認證成功
+            log.info("使用者 {} {} 登入成功！", email, password);
+            return ResponseEntity.ok(Map.of("message", "使用者 " + email + " 登入成功！"));
+        }
+        catch (IllegalStateException e)
+        {
+            // 處理認證失敗 (例如，密碼錯誤或使用者不存在)
+            log.warn("登入失敗，Email: {}，原因: {}", email, e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "登入失敗：Email 或密碼錯誤。"));
+        }
+        catch (Exception e)
+        {
+            // 處理其他未預期的伺服器錯誤
+            log.error("登入過程中發生未預期錯誤，Email: {}", email, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "伺服器內部錯誤，請稍後再試。"));
+        }
+    }
+
+
     // @PostMapping("/register")
     // public ResponseEntity<?> registerUser(@RequestParam String name, @RequestParam String email, @RequestParam String password)
     // {
@@ -82,5 +127,6 @@ public class UserController
     //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "伺服器內部錯誤，請稍後再試。"));
     //     }
     // }
+
 }
 
