@@ -341,160 +341,25 @@
 
           <div class="menu-container isotope-container row gy-4">
 
-            <!-- Regular Menu Items -->
-            <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room1.png}" alt="normal" class="menu-img img-fluid rounded-3">
+            <!-- Dynamic Room Items -->
+            <div th:each="room : ${rooms}" th:class="'col-lg-6 isotope-item filter-' + @{room.roomType}">
+              <div class="menu-item d-flex align-items-center gap-4"
+                data-bs-toggle="model" data-bs-target="#roomModal"
+                th:data-room-id=@{room.id}
+                th:data-room-name=@{room.name}
+                th:data-room-desc=@{room.description}
+                th:data-room-price=@{room.price}
+                th:data-room-image=@{room.imagePath}>
+                <img th:src="@{${room.imagePath}}" th:alt="${room.name}" class="menu-img img-fluid rounded-3">
                 <div class="menu-content">
-                  <h5>商務雅集</h5>
-                  <p>深色木質 + 皮革沙發，適合小型會議＋娛樂</p>
-                  <div class="price">$120</div>
+                  <h5 th:text="${room.name}">Room Name</h5>
+                  <p th:text="${room.description}">Room description</p>
+                  <div class="price" th:text="'$' + ${room.price}">$0</div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room2.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>休閒家庭 </h5>
-                  <p>溫馨風格，木紋＋柔色沙發，親子適用</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-                        <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room3.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>夜光派對</h5>
-                  <p>燈光秀模式（變色LED燈帶）、派對用音響</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-                        <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room4.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>日系和風</h5>
-                  <p>塌塌米區＋電動麻將桌，和風燈具</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-                        <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room5.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>工業風</h5>
-                  <p>水泥牆、鐵件長桌，極簡風格，適合年輕人</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-                        <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room6.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>文青風</h5>
-                  <p>Switch/PS5遊戲機，適合桌遊與電玩聚會</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-                        <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room7.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>遊戲同樂</h5>
-                  <p>Switch/PS5遊戲機，適合桌遊與電玩聚會</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-                        <div class="col-lg-6 isotope-item filter-normal">
-              <div class="menu-item d-flex align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room8.png}" alt="normal" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>自在酒吧</h5>
-                  <p>自帶吧台空間，開放式小型自助飲料區</p>
-                  <div class="price">$120</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 isotope-item filter-KTV">
-              <div class="d-flex menu-item align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room9.png}" alt="KTV" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>K-Lounge極致娛樂</h5>
-                  <p>KTV音響、氛圍燈、4人沙發，支援無人點歌</p>
-                  <div class="price">$250</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 isotope-item filter-KTV">
-              <div class="d-flex menu-item align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room10.png}" alt="KTV" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>K-Family歡唱</h5>
-                  <p>牆面隔音強化</p>
-                  <div class="price">$250</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 isotope-item filter-projection">
-              <div class="d-flex menu-item align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room11.png}" alt="projection" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>電影房</h5>
-                  <p>150吋投影幕＋劇院沙發，Netflix/串流支援</p>
-                  <div class="price">$200</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 isotope-item filter-projection">
-              <div class="d-flex menu-item align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room12.png}" alt="projection" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>投影簡報房</h5>
-                  <p>商務用途，白牆＋可書寫牆面，適合開會</p>
-                  <div class="price">$200</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 isotope-item filter-projection">
-              <div class="d-flex menu-item align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room13.png}" alt="projection" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>投影練團房</h5>
-                  <p>錄影設備＋投影鏡像，供樂團練習與回放檢視</p>
-                  <div class="price">$200</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 isotope-item filter-projection">
-              <div class="d-flex menu-item align-items-center gap-4">
-                <img th:src="@{/assets/img/restaurant/room14.png}" alt="projection" class="menu-img img-fluid rounded-3">
-                <div class="menu-content">
-                  <h5>投影教學房</h5>
-                  <p>支援筆電直連，適合小型講座或線上課程</p>
-                  <div class="price">$200</div>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div>
@@ -833,7 +698,7 @@
             <div class="contact-form-wrapper">
               <h2 class="text-center mb-4">Get in Touch</h2>
 
-              <form action="../static/forms/contact.php" method="post" class="php-email-form">
+              <form th:action="@{/forms/contact.php}" method="post" class="php-email-form">
                 <div class="row g-3">
                   <div class="col-md-6">
                     <div class="form-group">
@@ -897,7 +762,7 @@
     <div class="container footer-top">
       <div class="row gy-4">
         <div class="col-lg-5 col-md-12 footer-about">
-          <a href="index.html" class="logo d-flex align-items-center">
+          <a th:href="@{/index.html}" class="logo d-flex align-items-center">
             <span class="sitename">iZoneHub</span>
           </a>
           <p>Cras fermentum odio eu feugiat lide par naso tierra. Justo eget nada terra videa magna derita valies darta donna mare fermentum iaculis eu non diam phasellus.</p>
