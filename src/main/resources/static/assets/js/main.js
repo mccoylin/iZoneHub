@@ -8,6 +8,49 @@
 
 // ==========  自訂腳本開始 ==========
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Get room items
+    const roomItems = document.querySelectorAll('.menu-item');
+    console.log('[Room Modal] 頁面載入完成，找到', roomItems.length, '個房間項目。');
+
+    // Add click event to each room item
+    roomItems.forEach(item => {
+        item.addEventListener('click', function() {
+            console.log('[Room Modal] 使用者點擊了一個房間項目:', this);
+
+            // 從 data-* 屬性中獲取資料
+            const roomId = this.dataset.roomId;
+            const roomName = this.dataset.roomName;
+            const roomDesc = this.dataset.roomDesc;
+            const roomPrice = this.dataset.roomPrice;
+            const roomImage = this.dataset.roomImage;
+
+            // 輸出獲取到的資料，方便除錯
+            console.log('[Room Modal] 取得的房間資料:', {
+                ID: roomId,
+                名稱: roomName,
+                描述: roomDesc,
+                價格: roomPrice,
+                圖片路徑: roomImage
+            });
+
+            // Set modal content
+            console.log('[Room Modal] 正在更新 Modal 視窗的內容...');
+            document.getElementById('roomModalLabel').textContent = roomName;
+            document.getElementById('roomDesc').textContent = roomDesc;
+            document.getElementById('roomImage').src = roomImage;
+
+            // Set reserve button data if needed
+            const reserveBtn = document.getElementById('reserveBtn');
+            if (reserveBtn) {
+                reserveBtn.dataset.roomId = roomId;
+            }
+
+            console.log('[Room Modal] Modal 內容更新完畢。');
+        });
+    });
+});
+
 /**
  * ===================================================================
  * iZoneHub - Authentication & UI Management (Refactored & Final)

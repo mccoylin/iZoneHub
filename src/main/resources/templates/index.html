@@ -343,21 +343,29 @@
 
             <!-- Dynamic Room Items -->
             <div th:each="room : ${rooms}" th:class="'col-lg-6 isotope-item filter-' + @{room.roomType}">
+
+              <!-- 將後端傳來的資料，綁定到 data-* 屬性上 -->
               <div class="menu-item d-flex align-items-center gap-4"
                 data-bs-toggle="model" data-bs-target="#roomModal"
-                th:data-room-id=@{room.id}
-                th:data-room-name=@{room.name}
-                th:data-room-desc=@{room.description}
-                th:data-room-price=@{room.price}
-                th:data-room-image=@{room.imagePath}>
+                th:data-room-id="${room.id}"
+                th:data-room-name="${room.name}"
+                th:data-room-desc="${room.description}"
+                th:data-room-price="${room.price}"
+                th:data-room-image="@{${room.imagePath}}">
+
+                <!-- 顯示圖片 -->
                 <img th:src="@{${room.imagePath}}" th:alt="${room.name}" class="menu-img img-fluid rounded-3">
+
+                <!-- 顯示文字內容 -->
                 <div class="menu-content">
                   <h5 th:text="${room.name}">Room Name</h5>
                   <p th:text="${room.description}">Room description</p>
-                  <div class="price" th:text="'$' + ${room.price}">$0</div>
+                  <div class="price" th:text="'$' + ${room.price}">$120</div>
                 </div>
               </div>
             </div>
+            <!-- End Dynamic Room Items -->
+
           </div>
 
           </div>
