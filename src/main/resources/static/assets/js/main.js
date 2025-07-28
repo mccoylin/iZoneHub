@@ -50,6 +50,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+// 這段程式碼應該用來處理您 Modal 視窗中「立即預約」按鈕的點擊事件
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 這部分程式碼負責在使用者點擊某個房間時，將其 ID 暫存到「立即預約」按鈕上
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', function() {
+            // 從被點擊的房間項目中讀取 data-room-id
+            const roomId = this.dataset.roomId;
+            const reserveBtn = document.getElementById('reserveBtn');
+            if (reserveBtn) {
+                // 將 ID 存到按鈕的 dataset 中，以便後續使用
+                reserveBtn.dataset.roomId = roomId;
+            }
+            // ... 您其他用來填充 Modal 內容的程式碼 ...
+        });
+    });
+
+    // 這部分程式碼負責處理「立即預約」按鈕本身的點擊事件
+    const reserveBtn = document.getElementById('reserveBtn');
+    if (reserveBtn) {
+        reserveBtn.addEventListener('click', function() {
+            // 從按鈕的 data-* 屬性中讀取我們剛剛存入的 roomId
+            const roomId = this.dataset.roomId;
+
+            if (roomId) {
+                console.log(`準備跳轉至預約頁面，房間 ID: ${roomId}`);
+
+                // 建構正確的 URL 並進行頁面跳轉
+                // 這將會產生一個像 "/booking/5" 這樣的 URL
+                window.location.href = `/booking/${roomId}`;
+            } else {
+                console.error('「立即預約」按鈕被點擊，但找不到房間 ID。');
+                alert('發生錯誤，請重新選擇房間。');
+            }
+        });
+    }
+});
+
 
 /**
  * ===================================================================
@@ -480,37 +518,3 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('scroll', navmenuScrollspy);
 
 })();
-// Modal for Room Details
-document.addEventListener('DOMContentLoaded', function() {
-  const reserveBtn = document.getElementById('reserveBtn');
-  let selectedRoom = {}; // 用來記錄當前選擇的房間
-
-  document.querySelectorAll('.menu-item').forEach(item => {
-    item.addEventListener('click', function() {
-      const title = this.querySelector('h5').innerText;
-      const desc = this.querySelector('p').innerText;
-      const imgSrc = this.querySelector('img').src;
-    
-
-      selectedRoom = {
-        name: title,
-        desc: desc,
-        img: imgSrc
-      };
-
-      document.getElementById('roomModalLabel').innerText = title;
-      document.getElementById('roomDesc').innerText = desc;
-      document.getElementById('roomImage').src = imgSrc;
-
-      const roomModal = new bootstrap.Modal(document.getElementById('roomModal'));
-      roomModal.show();
-    });
-  });
-
-  reserveBtn.addEventListener('click', function() {
-    const url = `booking.html?roomName=${encodeURIComponent(selectedRoom.name)}&roomImage=${encodeURIComponent(selectedRoom.img)}`;
-    window.location.href = url;
-  });
-});
-
-

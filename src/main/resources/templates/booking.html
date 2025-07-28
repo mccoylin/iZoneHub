@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>包廂預約</title>
+
+  <!-- 使用以斜線開頭的絕對路徑，讓資源載入在任何頁面路徑下都保持正確 -->
+  <link th:href="@{/assets/vendor/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+  <link th:href="@{/assets/vendor/bootstrap-icons/bootstrap-icons.css}" rel="stylesheet">
+  <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+</head>
+
+<body class="index-page">
+
+<header id="header" class="header d-flex align-items-center sticky-top">
+  <div class="container d-flex justify-content-between align-items-center">
+    <!-- 連結到網站根目錄應使用 "/" -->
+    <a th:href="@{/}" class="logo d-flex align-items-center">
+      <i class="bi bi-box-seam"></i>
+      <h1 class="sitename">iZoneHub</h1>
+    </a>
+  </div>
+</header>
+
+<main class="main">
+  <section class="section">
+    <div class="container">
+      <div class="section-title text-center">
+        <h2>包廂預約（整點選擇）</h2>
+        <p>請選擇開始與結束時間（日期＋小時）</p>
+      </div>
+
+      <!-- 使用 th:if 在伺服器端進行條件渲染，比用 JS 控制顯示/隱藏更優雅、更可靠 -->
+      <div th:if="${room != null}">
+        <div id="selectedRoom" class="mb-4 text-center">
+          <!-- 使用 th:text 和 th:src 直接由後端渲染內容，避免畫面閃爍，提升使用者體驗 -->
+          <h2 id="selectedRoomName" th:text="${room.name}">房間名稱</h2>
+          <img id="selectedRoomImage" th:src="@{'/' + ${room.imagePath}}" th:alt="${room.name}" class="img-fluid rounded-3 mb-3" style="max-width:400px;">
+        </div>
+
+        <form id="bookingForm" class="php-email-form">
+          <!-- 隱藏欄位，用於提交表單時傳遞房間ID -->
+          <input type="hidden" name="roomId" th:value="${room.id}" />
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="startDate">開始日期</label>
+              <input type="date" id="startDate" name="startDate" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="startHour">開始時間（整點）</label>
+              <select id="startHour" name="startHour" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="endDate">結束日期</label>
+              <input type="date" id="endDate" name="endDate" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="endHour">結束時間（整點）</label>
+              <select id="endHour" name="endHour" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label>試算金額</label>
+            <!-- 使用 data-* 屬性安全地將後端資料（如價格）傳遞給 JavaScript -->
+            <div id="priceDisplay" class="fs-4" th:data-price-per-hour="${room.price}">$0</div>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn custom-gold-btn">立即結帳</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 如果 room 物件不存在，則只渲染這個錯誤訊息區塊 -->
+      <div th:if="${room == null}" class="text-center">
+        <p class="text-danger fs-4">錯誤：找不到指定的房間資訊。</p>
+        <a th:href="@{/}" class="btn btn-secondary mt-3">返回首頁</a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+
+  // 將所有腳本封裝在一個立即執行函式 (IIFE) 中，避免污染全域作用域
+  (function() {
+    // 透過 Thymeleaf 判斷 room 物件是否存在，若不存在則直接結束腳本，避免後續 JS 報錯
+    const roomExists = /*[[${room != null}]]*/ false;
+    if (!roomExists) {
+      return;
+    }
+
+    // --- 快取 DOM 元素，提升效能與可讀性 ---
+    const bookingForm = document.getElementById('bookingForm');
+    const startDateInput = document.getElementById('startDate');
+    const startHourSelect = document.getElementById('startHour');
+    const endDateInput = document.getElementById('endDate');
+    const endHourSelect = document.getElementById('endHour');
+    const priceDisplay = document.getElementById('priceDisplay');
+    const pricePerHour = parseFloat(priceDisplay.dataset.pricePerHour);
+    const roomId = document.querySelector('input[name="roomId"]').value;
+
+    // --- 函式定義 ---
+
+    // 產生 0-23 點的下拉選單
+    function populateHours(selectElement) {
+      // 使用 DocumentFragment 進行 DOM 操作，一次性附加，效能更佳
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < 24; i++) {
+        const h = i.toString().padStart(2, '0');
+        const option = document.createElement('option');
+        option.value = h;
+        option.textContent = `${h}:00`;
+        fragment.appendChild(option);
+      }
+      selectElement.appendChild(fragment);
+    }
+
+    // [新功能] 更新指定下拉選單的可選時段
+    async function updateAvailableHours(dateInput, hourSelect) {
+      const selectedDate = dateInput.value;
+      if (!selectedDate) return;
+
+      // 1. 重設所有選項為可選，並顯示一個載入中的提示
+      hourSelect.querySelectorAll('option').forEach(opt => opt.disabled = false);
+      const firstOption = hourSelect.querySelector('option');
+      if (firstOption) firstOption.textContent = '載入中...';
+
+      try {
+        // 2. 向後端 API 發送請求，獲取不可用的時段
+        const response = await fetch(`/api/bookings/${roomId}/unavailable-slots?date=${selectedDate}`);
+        if (!response.ok) throw new Error('無法獲取時段資訊');
+
+        const unavailableHours = await response.json(); // e.g., [14, 15, 16]
+
+        // 3. 禁用已被預約的時段
+        unavailableHours.forEach(hour => {
+          const option = hourSelect.querySelector(`option[value="${hour.toString().padStart(2, '0')}"]`);
+          if (option) option.disabled = true;
+        });
+      } catch (error) {
+        console.error('更新時段失敗:', error);
+      } finally {
+        if (firstOption) firstOption.textContent = '00:00'; // 恢復原始文字
+      }
+    }
+
+    // 計算並顯示預估價格
+    function calculatePrice() {
+      const startDate = startDateInput.value;
+      const startHour = startHourSelect.value;
+      const endDate = endDateInput.value;
+      const endHour = endHourSelect.value;
+
+      if (startDate && startHour && endDate && endHour) {
+        const start = new Date(`${startDate}T${startHour}:00:00`);
+        const end = new Date(`${endDate}T${endHour}:00:00`);
+
+        if (end > start) {
+          const diffMs = end - start;
+          const hours = diffMs / (1000 * 60 * 60);
+          const totalCost = hours * pricePerHour;
+          // 使用 toLocaleString() 格式化金額，例如：$1,200
+          priceDisplay.textContent = `$${totalCost.toLocaleString()}`;
+        } else {
+          priceDisplay.textContent = '$0';
+        }
+      }
+    }
+
+    // 處理預約表單提交
+    async function handleBookingSubmit(e) {
+      e.preventDefault(); // 阻止表單的預設提交行為
+      const submitButton = e.target.querySelector('button[type="submit"]');
+
+      const startDate = startDateInput.value;
+      const startHour = startHourSelect.value;
+      const endDate = endDateInput.value;
+      const endHour = endHourSelect.value;
+
+      const start = new Date(`${startDate}T${startHour}:00:00`);
+      const end = new Date(`${endDate}T${endHour}:00:00`);
+
+      if (end <= start) {
+        alert('結束時間必須晚於開始時間');
+        return;
+      }
+
+      // 準備要傳送給後端的資料
+      const bookingData = {
+        roomId: roomId,
+        // userId: 1, // 您需要從登入狀態獲取當前使用者ID
+
+
+                 // [修正] 回歸使用 .toISOString()，它會將使用者的本地時間轉換為後端需要的 UTC 標準時間字串
+         startTime: start.toISOString(),
+         endTime: end.toISOString()
+      };
+
+      // 禁用按鈕，防止重複提交
+      submitButton.disabled = true;
+      submitButton.textContent = '處理中...';
+
+      try {
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(`預約成功！\n您的預約編號是: ${result.bookingId}`);
+          window.location.href = '/'; // 預約成功後跳轉回首頁
+        } else {
+          // 顯示後端傳來的具體錯誤訊息
+          throw new Error(result.error || '預約失敗，請稍後再試。');
+        }
+      } catch (error) {
+        alert(error.message);
+        submitButton.disabled = false;
+        submitButton.textContent = '立即結帳';
+      }
+    }
+
+    // --- 初始化與事件綁定 ---
+    function init() {
+      populateHours(startHourSelect);
+      populateHours(endHourSelect);
+
+      const inputs = [startDateInput, startHourSelect, endDateInput, endHourSelect];
+      inputs.forEach(input => input.addEventListener('change', calculatePrice));
+
+      bookingForm.addEventListener('submit', handleBookingSubmit);
+
+      // [新功能] 當日期改變時，更新可選時段
+      startDateInput.addEventListener('change', () => updateAvailableHours(startDateInput, startHourSelect));
+      endDateInput.addEventListener('change', () => updateAvailableHours(endDateInput, endHourSelect));
+    }
+
+    // 當 DOM 載入完成後，執行初始化函式
+    document.addEventListener('DOMContentLoaded', init);
+
+  })();
+
+  /*]]>*/
+</script>
+
+</body>
+</html>

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.iZoneHub.demo.model.Rooms;
 import com.iZoneHub.demo.model.Rooms.RoomType;
@@ -50,6 +51,16 @@ public class RoomService
     public Rooms getRoomById(Long id)
     {
         return roomRepository.findById(id).orElse(null);
+    }
+
+    /**
+     * (建議新增) 以 Optional 的形式根據 ID 查找房間，這是更現代且安全的作法。
+     *
+     * @param id the ID of the room to retrieve
+     * @return an Optional containing the room if found, or an empty Optional if not
+     */
+    public Optional<Rooms> findRoomById(Long id) {
+        return roomRepository.findById(id);
     }
 
 }
