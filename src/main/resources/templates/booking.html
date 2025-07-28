@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>包廂預約</title>
-</head>
+<head th:replace="~{fragments/_head :: head-content}"></head>
+
 <body class="index-page">
 
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container d-flex justify-content-between align-items-center">
-      <i class="bi bi-box-seam"></i>
+    <a th:href="@{/}" class="logo d-flex align-items-center me-auto me-xl-0">
+      <i class="bi bi-box-seam me-2"></i>
       <h1 class="sitename">iZoneHub</h1>
     </a>
   </div>
@@ -18,97 +16,170 @@
 
 <main class="main">
   <section class="section">
-    <div class="container">
+    <div class="container" data-aos="fade-up">
       <div class="section-title text-center">
         <h2>包廂預約（整點選擇）</h2>
         <p>請選擇開始與結束時間（日期＋小時）</p>
       </div>
 
-        <div id="selectedRoom" class="mb-4 text-center">
+      <!-- 顯示選擇的房間資訊 -->
+      <div id="selectedRoom" class="mb-4 text-center" th:if="${room != null}">
+        <h3 th:text="${room.name}">房間名稱</h3>
+        <p th:text="${room.description}">房間描述</p>
+        <p>價格：<span th:text="${room.price}"></span> 元 / 小時</p>
+      </div>
+      <div th:if="${room == null}" class="alert alert-danger text-center">
+        錯誤：找不到房間資訊。
+      </div>
+
+      <form id="bookingForm" class="php-email-form" th:if="${room != null}">
+        <!-- 將房間ID和價格隱藏在表單中 -->
+        <input type="hidden" id="roomId" th:value="${room.id}">
+        <input type="hidden" id="roomPrice" th:value="${room.price}">
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="startDate" class="form-label">開始日期</label>
+            <input type="date" id="startDate" name="startDate" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label for="startHour" class="form-label">開始時間（整點）</label>
+            <select id="startHour" name="startHour" class="form-control" required></select>
+          </div>
         </div>
 
-        <form id="bookingForm" class="php-email-form">
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="startDate">開始日期</label>
-              <input type="date" id="startDate" name="startDate" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label for="startHour">開始時間（整點）</label>
-              <select id="startHour" name="startHour" class="form-control" required></select>
-            </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="endDate" class="form-label">結束日期</label>
+            <input type="date" id="endDate" name="endDate" class="form-control" required>
           </div>
+          <div class="col-md-6">
+            <label for="endHour" class="form-label">結束時間（整點）</label>
+            <select id="endHour" name="endHour" class="form-control" required></select>
+          </div>
+        </div>
 
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="endDate">結束日期</label>
-              <input type="date" id="endDate" name="endDate" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label for="endHour">結束時間（整點）</label>
-              <select id="endHour" name="endHour" class="form-control" required></select>
-            </div>
-          </div>
+        <div class="mb-3 text-center">
+          <h4>試算金額: <span id="priceDisplay" class="fw-bold text-danger">$0</span></h4>
+        </div>
 
-          <div class="mb-3">
-            <label>試算金額</label>
-          </div>
-
-          <div class="text-center">
-            <button type="submit" class="btn custom-gold-btn">立即結帳</button>
-          </div>
-        </form>
+        <div class="text-center">
+          <button type="submit" class="btn custom-gold-btn">確認預約</button>
+        </div>
+      </form>
     </div>
   </section>
 </main>
 
+<!-- 引入必要的 JS 檔案 -->
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/aos/aos.js"></script>
+<!-- ... 其他需要的 JS ... -->
+<script src="/assets/js/main.js"></script>
+
 
 <script th:inline="javascript">
-  /*<![CDATA[*/
+  document.addEventListener('DOMContentLoaded', function() {
+    const startHourSelect = document.getElementById('startHour');
+    const endHourSelect = document.getElementById('endHour');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const priceDisplay = document.getElementById('priceDisplay');
+    const bookingForm = document.getElementById('bookingForm');
+    const roomPrice = parseFloat(document.getElementById('roomPrice')?.value || 0);
+    const roomId = document.getElementById('roomId')?.value;
 
-
-
-
-    // 產生 0-23 點的下拉選單
+    // 1. 產生 0-23 點的下拉選單
+    function populateHourOptions(selectElement) {
       for (let i = 0; i < 24; i++) {
         const h = i.toString().padStart(2, '0');
         const option = document.createElement('option');
         option.value = h;
         option.textContent = `${h}:00`;
+        selectElement.appendChild(option);
       }
     }
+    populateHourOptions(startHourSelect);
+    populateHourOptions(endHourSelect);
 
-    // 計算並顯示預估價格
+    // 2. 計算並顯示預估價格
     function calculatePrice() {
+      const startDate = startDateInput.value;
+      const startHour = startHourSelect.value;
+      const endDate = endDateInput.value;
+      const endHour = endHourSelect.value;
 
-      if (startDate && startHour && endDate && endHour) {
+      if (startDate && startHour && endDate && endHour && roomPrice > 0) {
         const start = new Date(`${startDate}T${startHour}:00:00`);
         const end = new Date(`${endDate}T${endHour}:00:00`);
 
         if (end > start) {
           const diffMs = end - start;
           const hours = diffMs / (1000 * 60 * 60);
+          const totalCost = hours * roomPrice;
+          priceDisplay.textContent = `$${totalCost.toFixed(0)}`;
         } else {
           priceDisplay.textContent = '$0';
         }
       }
     }
 
-    // 處理預約表單提交
+    // 3. 監聽所有日期和時間的變動，即時更新價格
+    [startDateInput, startHourSelect, endDateInput, endHourSelect].forEach(el => {
+      el.addEventListener('change', calculatePrice);
+    });
 
+    // 4. 處理預約表單提交
+    if (bookingForm) {
+      bookingForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
 
-      const start = new Date(`${startDate}T${startHour}:00:00`);
-      const end = new Date(`${endDate}T${endHour}:00:00`);
+        const startDate = startDateInput.value;
+        const startHour = startHourSelect.value;
+        const endDate = endDateInput.value;
+        const endHour = endHourSelect.value;
 
-      if (end <= start) {
-        alert('結束時間必須晚於開始時間');
-        return;
-      }
+        // 將本地時間轉換為 ISO 8601 格式的 UTC 時間字串
+        const startTime = new Date(`${startDate}T${startHour}:00:00`).toISOString();
+        const endTime = new Date(`${endDate}T${endHour}:00:00`).toISOString();
 
+        if (new Date(endTime) <= new Date(startTime)) {
+          alert('結束時間必須晚於開始時間');
+          return;
+        }
 
+        const bookingData = {
+          roomId: roomId,
+          startTime: startTime,
+          endTime: endTime
+        };
+
+        try {
+          const response = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bookingData)
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            alert('預約成功！');
+            // 可以在這裡跳轉到訂單確認頁面
+            window.location.href = '/'; // 例如跳回首頁
+          } else {
+            // 顯示後端傳來的錯誤訊息
+            alert(`預約失敗：${result.error || '未知錯誤'}`);
+          }
+        } catch (error) {
+          console.error('預約請求失敗:', error);
+          alert('預約請求失敗，請檢查網路連線或聯繫管理員。');
+        }
+      });
     }
-
-  /*]]>*/
+  });
 </script>
 
 </body>

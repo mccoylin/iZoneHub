@@ -1,30 +1,29 @@
 package com.iZoneHub.demo.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Getter // 自動為所有欄位產生 getter 方法 (e.g., getRoom())
-@Setter // 自動為所有欄位產生 setter 方法 (e.g., setRoom())
-@NoArgsConstructor // 自動產生無參數的建構子
+@Data
 @Entity
 @Table(name = "bookings")
 public class Booking {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
-    private Rooms room;
+    // [核心修復] 建立 Booking 到 User 的多對一關聯
+    @ManyToOne(fetch = FetchType.LAZY) // 一個使用者可以有多個預約
+    @JoinColumn(name = "user_id", nullable = false) // 對應到資料庫中的 user_id 欄位，且不允許為空
+    private User user;
 
-    // @ManyToOne
-    // @JoinColumn(name = "user_id", nullable = false)
-    // private User user;
+    // [核心修復] 建立 Booking 到 Rooms 的多對一關聯
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false) // 對應到資料庫中的 room_id 欄位
+    private Rooms room;
 
     @Column(nullable = false)
     private Instant startTime;
@@ -32,10 +31,10 @@ public class Booking {
     @Column(nullable = false)
     private Instant endTime;
 
-    @Column(nullable = false)
+    @Column(precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
     private String status;
 
-    // 所有手動編寫的 getter, setter 和建構子都可以刪除了！
+    private Instant createdAt = Instant.now();
 }

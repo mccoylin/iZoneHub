@@ -1,15 +1,15 @@
 server:
-  port: 8888
+  port: 8080
 
 
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/iZoneHub?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
-    username: mccoy
-    password: (C,ybJ27h%~YuEk~b!lA
-    # username: root
-    # password: 123456
+#    username: mccoy
+#    password: (C,ybJ27h%~YuEk~b!lA
+    username: root
+    password: 1234
 
   jpa:
     hibernate:

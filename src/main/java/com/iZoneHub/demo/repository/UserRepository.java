@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional; // 引入 Optional
 
 import com.iZoneHub.demo.model.User;
-
+@Repository
 public interface UserRepository extends JpaRepository<User, Long>
 {
     // Spring Data JPA 的查詢方法在設計上不直接回傳實體物件，而是回傳一個 Optional<T> 物件。
