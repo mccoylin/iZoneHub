@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 
 import java.math.BigDecimal;
@@ -34,6 +35,13 @@ public class Rooms
     @Column(name = "room_type")
     @Enumerated(EnumType.STRING)
     private RoomType roomType;      // 類型 (normal, KTV, projection)
+
+    @Column(name = "created_at")
+    private LocalDate createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDate updatedAt;
+
 
     // Enum for room types
     public enum RoomType
