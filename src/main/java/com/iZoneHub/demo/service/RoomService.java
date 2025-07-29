@@ -10,14 +10,16 @@ import com.iZoneHub.demo.model.Rooms;
 import com.iZoneHub.demo.model.Rooms.RoomType;
 import com.iZoneHub.demo.repository.RoomRepository;
 
+/**
+ * 房間相關的服務層。
+ * 負責處理房間查詢等商業邏輯。
+ */
 @Service
-public class RoomService
-{
+public class RoomService {
     private final RoomRepository roomRepository;
 
     @Autowired
-    public RoomService(RoomRepository roomRepository)
-    {
+    public RoomService(RoomRepository roomRepository) {
         this.roomRepository = roomRepository;
     }
 

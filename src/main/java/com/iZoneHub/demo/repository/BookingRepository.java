@@ -8,6 +8,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * 預約資料存取層。
+ * 提供查詢重疊預約與是否存在衝突的功能。
+ */
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     // [移除] 舊的查詢方法不夠穩健，將被新的 findOverlappingBookings 取代
