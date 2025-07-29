@@ -34,6 +34,9 @@
   * License: https://bootstrapmade.com/license/
   ======================================================== -->
 </head>
+
+<body class="index-page">
+
 <!-- Room Modal -->
 <div class="modal fade" id="roomModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -77,6 +80,7 @@
           <div class="mb-3">
             <input type="password" name="password" class="form-control custom-input" placeholder="密碼" required>
           </div>
+
           <button type="submit" class="btn custom-gold-btn w-100 mb-3">立即登入</button>
 
           <div class="text-center">
@@ -96,6 +100,9 @@
           <div class="mb-3">
             <input type="password" name="password" class="form-control custom-input" placeholder="密碼" required>
           </div>
+          <div class="mb-3">
+            <input type="password" name="confirm_password" class="form-control custom-input" placeholder="確認密碼" required>
+          </div>
           <button type="submit" class="btn custom-gold-btn w-100 mb-3">立即註冊</button>
 
           <div class="text-center">
@@ -113,7 +120,6 @@
 <!-- Swap form -->
 
 <!-- End Swap form -->
-<body class="index-page">
 
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container position-relative d-flex align-items-center justify-content-between">
@@ -141,7 +147,8 @@
     <div class="auth-section d-flex align-items-center">
       <span id="userGreeting" class="text-gold me-2 d-none">歡迎，<span id="userName"></span></span>
       <a class="btn-getstarted d-none d-sm-block ms-2" href="#" data-bs-toggle="modal" data-bs-target="#authModal" id="loginBtn">Log In</a>
-      <a class="btn-getstarted d-none d-sm-block ms-2" href="#" id="logoutBtn" style="display: none;">登出</a>
+      <a class="btn-getstarted d-none d-sm-block ms-2" href="#" id="logoutBtn">登出</a>
+
     </div>
 
 

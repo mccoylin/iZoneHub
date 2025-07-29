@@ -123,22 +123,24 @@
             const loginData = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(loginData),
-                });
+const response = await fetch('/api/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify(loginData)
+});
                 const result = await response.json();
 
                 if (response.ok && result.user) {
                     // 登入成功
+                    console.log('[Login Success]', result); //確認
+
                     localStorage.setItem('currentUser', JSON.stringify(result.user));
                     showLoggedInState(result.user.name);
 
                     const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
                     authModal.hide();
                     signInForm.reset();
-                    window.location.reload(); // 重新載入頁面以更新所有狀態
                 } else {
                     showAlert(result.message || '登入失敗，請檢查您的帳號密碼。');
                     const passwordInput = signInForm.querySelector('input[name="password"]');
@@ -193,7 +195,7 @@
             event.preventDefault();
             try {
                 // 步驟 1: 呼叫後端 API，銷毀伺服器上的 Session (最重要的一步)
-                const response = await fetch('/api/logout', { method: 'POST' });
+                const response = await fetch('/api/logout', { method: 'POST',credentials: 'include' });
                 if (!response.ok) {
                     console.error('Server logout failed.');
                 }
@@ -222,7 +224,7 @@
         switchToSignIn.addEventListener('click', (e) => {
             e.preventDefault();
             hideAlert();
-            signUpForm.classList.add('d-one');
+            signUpForm.classList.add('d-none');
             signInForm.classList.remove('d-none');
             authModalLabel.textContent = '登入 iZoneHub';
         });
@@ -442,3 +444,4 @@
   document.addEventListener('scroll', navmenuScrollspy);
 
 })();
+
