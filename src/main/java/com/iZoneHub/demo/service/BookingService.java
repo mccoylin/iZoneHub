@@ -33,7 +33,32 @@ public class BookingService {
         this.userRepository = userRepository;
     }
 
-    // ... getUnavailableHours 方法保持不變 ...
+    public List<Integer> getUnavailableHours(Long roomId, LocalDate date) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime startOfDay = date.atStartOfDay(zoneId);
+        ZonedDateTime endOfDay = startOfDay.plusDays(1);
+
+        List<Booking> bookings = bookingRepository.findOverlappingBookings(
+                roomId,
+                startOfDay.toInstant(),
+                endOfDay.toInstant());
+
+        return bookings.stream()
+                .flatMap(b -> {
+                    ZonedDateTime bookingStart = b.getStartTime().atZone(zoneId);
+                    ZonedDateTime bookingEnd = b.getEndTime().atZone(zoneId);
+
+                    ZonedDateTime start = bookingStart.isBefore(startOfDay) ? startOfDay : bookingStart;
+                    ZonedDateTime end = bookingEnd.isAfter(endOfDay) ? endOfDay : bookingEnd;
+
+                    return IntStream.iterate(start.getHour(), h -> h + 1)
+                            .limit((int) Duration.between(start.truncatedTo(ChronoUnit.HOURS), end).toHours())
+                            .boxed();
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public Booking createBooking(BookingRequest request, Long userId) {
