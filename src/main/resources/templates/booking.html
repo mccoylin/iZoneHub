@@ -89,6 +89,27 @@
     const roomPrice = parseFloat(document.getElementById('roomPrice')?.value || 0);
     const roomId = document.getElementById('roomId')?.value;
 
+    async function updateUnavailable(date) {
+      if (!date || !roomId) return;
+      try {
+        const resp = await fetch(`/api/bookings/unavailable?roomId=${roomId}&date=${date}`);
+        if (!resp.ok) return;
+        const hours = await resp.json();
+        [startHourSelect, endHourSelect].forEach(select => {
+          Array.from(select.options).forEach(opt => {
+            opt.disabled = false;
+            opt.classList.remove('text-muted');
+            if (hours.includes(parseInt(opt.value))) {
+              opt.disabled = true;
+              opt.classList.add('text-muted');
+            }
+          });
+        });
+      } catch (e) {
+        console.error('Failed to fetch unavailable hours', e);
+      }
+    }
+
     // 1. 產生 0-23 點的下拉選單
     function populateHourOptions(selectElement) {
       for (let i = 0; i < 24; i++) {
@@ -101,6 +122,9 @@
     }
     populateHourOptions(startHourSelect);
     populateHourOptions(endHourSelect);
+    if (startDateInput.value) {
+      updateUnavailable(startDateInput.value);
+    }
 
     // 2. 計算並顯示預估價格
     function calculatePrice() {
@@ -128,6 +152,9 @@
     [startDateInput, startHourSelect, endDateInput, endHourSelect].forEach(el => {
       el.addEventListener('change', calculatePrice);
     });
+
+    startDateInput.addEventListener('change', e => updateUnavailable(e.target.value));
+    endDateInput.addEventListener('change', e => updateUnavailable(e.target.value));
 
     // 4. 處理預約表單提交
     if (bookingForm) {

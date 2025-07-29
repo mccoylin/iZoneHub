@@ -7,8 +7,11 @@ import com.iZoneHub.demo.service.BookingService;
 import jakarta.servlet.http.HttpSession; // 確保已引入
 import org.springframework.http.HttpStatus; // 確保已引入
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 // ... 其他 import ...
 
@@ -22,7 +25,12 @@ public class BookingApiController {
         this.bookingService = bookingService;
     }
 
-    // ... 其他方法，例如 getUnavailableSlots ...
+    @GetMapping("/unavailable")
+    public ResponseEntity<List<Integer>> getUnavailableHours(
+            @RequestParam Long roomId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(bookingService.getUnavailableHours(roomId, date));
+    }
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody BookingRequest request, HttpSession session) {
