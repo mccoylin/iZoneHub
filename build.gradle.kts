@@ -27,6 +27,7 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	runtimeOnly("com.mysql:mysql-connector-j")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+	implementation("org.springframework.boot:spring-boot-starter-security")
 }
 
 tasks.withType<Test> {

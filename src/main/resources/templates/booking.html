@@ -24,6 +24,8 @@
 
       <!-- 顯示選擇的房間資訊 -->
       <div id="selectedRoom" class="mb-4 text-center" th:if="${room != null}">
+        <img th:src="@{'/' + ${room.imagePath}}" th:alt="${room.name}" style="width: 50%; height: auto;">
+
         <h3 th:text="${room.name}">房間名稱</h3>
         <p th:text="${room.description}">房間描述</p>
         <p>價格：<span th:text="${room.price}"></span> 元 / 小時</p>
@@ -198,6 +200,7 @@
             headers: {
               'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify(bookingData)
           });
 

@@ -1732,6 +1732,11 @@ section,
   .chefs .team-container {
     padding-left: 0;
   }
+    .auth-section {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+    }
 }
 
 .chefs .chef-card {
@@ -2705,4 +2710,9 @@ section,
 .starter-section {
   /* Add your styles here */
 }
+
+
+
+
+
 

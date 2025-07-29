@@ -83,19 +83,38 @@
     // --- 3. 認證與 UI 管理 ---
 
     // 3.1 UI 更新函式
-    function showLoggedInState(name) {
-        if (userNameSpan) userNameSpan.textContent = name;
-        if (userGreeting) userGreeting.classList.remove('d-none');
-        if (loginBtn) loginBtn.classList.add('d-none');
-        if (logoutBtn) logoutBtn.classList.remove('d-none');
+
+
+
+window.showLoggedInState = function(name) {
+    if (userNameSpan) userNameSpan.textContent = name;
+    if (userGreeting) userGreeting.classList.remove('d-none');
+
+    if (loginBtn) {
+        loginBtn.classList.add('d-none');
+        loginBtn.style.setProperty('display', 'none', 'important');
     }
 
-    function showLoggedOutState() {
-        if (userGreeting) userGreeting.classList.add('d-none');
-        if (userNameSpan) userNameSpan.textContent = '';
-        if (loginBtn) loginBtn.classList.remove('d-none');
-        if (logoutBtn) logoutBtn.classList.add('d-none');
+    if (logoutBtn) {
+        logoutBtn.classList.remove('d-none'); // 這行保險用
+        logoutBtn.style.setProperty('display', 'block', 'important');
     }
+};
+window.showLoggedOutState = function() {
+    if (userGreeting) userGreeting.classList.add('d-none');
+    if (userNameSpan) userNameSpan.textContent = '';
+
+    if (loginBtn) {
+        loginBtn.classList.remove('d-none');
+        loginBtn.style.setProperty('display', 'block', 'important');
+    }
+
+    if (logoutBtn) {
+        logoutBtn.classList.add('d-none'); // 這行保險用
+        logoutBtn.style.setProperty('display', 'none', 'important');
+    }
+};
+
 
     function showAlert(message) {
         if (authAlert) {
@@ -119,17 +138,25 @@
             event.preventDefault();
             hideAlert();
 
-            const formData = new FormData(signInForm);
-            const loginData = Object.fromEntries(formData.entries());
+    try {
+    const emailInput = signInForm.querySelector('input[name="email"]');
+    const passwordInput = signInForm.querySelector('input[name="password"]');
 
-            try {
-const response = await fetch('/api/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
-  body: JSON.stringify(loginData)
-});
-                const result = await response.json();
+            const formData = new URLSearchParams();
+            formData.append('email', emailInput.value.trim());
+            formData.append('password', passwordInput.value);
+
+            const response = await fetch('/api/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              credentials: 'include',
+              body: formData
+            });
+
+
+         const result = await response.json();
 
                 if (response.ok && result.user) {
                     // 登入成功
@@ -231,21 +258,41 @@ const response = await fetch('/api/login', {
     }
 
     // --- 4. 頁面載入時檢查登入狀態 ---
-    try {
-        const savedUserJSON = localStorage.getItem('currentUser');
-        if (savedUserJSON) {
-            const savedUser = JSON.parse(savedUserJSON);
-            showLoggedInState(savedUser.name);
-        } else {
-            // 使用者尚未登入或沒有儲存資訊，顯示預設的登出狀態
-            showLoggedOutState();
+    // 立即執行的非同步函式 (IIFE) 來處理初始認證檢查
+    (async function checkAuthenticationStatus() {
+        try {
+            // 步驟 1: 呼叫後端 API 驗證 session 狀態
+            const response = await fetch('/api/auth/status', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include' // 確保發送 cookie，這非常重要！
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.loggedIn && result.user) {
+                    // 伺服器確認已登入
+                    console.log('Server confirmed: User is logged in.', result.user.name);
+                    localStorage.setItem('currentUser', JSON.stringify(result.user)); // 同步更新 localStorage
+                    showLoggedInState(result.user.name);
+                } else {
+                    // 伺服器確認未登入
+                    console.log('Server confirmed: User is NOT logged in.');
+                    localStorage.removeItem('currentUser'); // 清理可能過期的 localStorage
+                    showLoggedOutState();
+                }
+            } else {
+                // API 呼叫失敗 (例如 401 Unauthorized, 500 Server Error)，也視為未登入
+                console.error('Auth status check failed with status:', response.status);
+                localStorage.removeItem('currentUser');
+                showLoggedOutState();
+            }
+        } catch (error) {
+            // 網路錯誤等，同樣視為未登入，確保 UI 正確
+            console.error('Error checking authentication status:', error);
+            window.showLoggedOutState();
         }
-    } catch (e) {
-        console.error("Failed to parse user data from localStorage", e);
-        localStorage.removeItem('currentUser');
-        showLoggedOutState();
-    }
-  });
+    })(); // 函式定義後立即執行
 
 
   /**
@@ -447,5 +494,5 @@ const response = await fetch('/api/login', {
   window.addEventListener('load', navmenuScrollspy);
   document.addEventListener('scroll', navmenuScrollspy);
 
+});
 })();
-
