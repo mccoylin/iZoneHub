@@ -95,15 +95,26 @@
         const resp = await fetch(`/api/bookings/unavailable?roomId=${roomId}&date=${date}`);
         if (!resp.ok) return;
         const hours = await resp.json();
-        [startHourSelect, endHourSelect].forEach(select => {
-          Array.from(select.options).forEach(opt => {
-            opt.disabled = false;
-            opt.classList.remove('text-muted');
-            if (hours.includes(parseInt(opt.value))) {
-              opt.disabled = true;
-              opt.classList.add('text-muted');
-            }
-          });
+
+        // start 時間直接禁用回傳的時段
+        Array.from(startHourSelect.options).forEach(opt => {
+          opt.disabled = false;
+          opt.classList.remove('text-muted');
+          if (hours.includes(parseInt(opt.value))) {
+            opt.disabled = true;
+            opt.classList.add('text-muted');
+          }
+        });
+
+        // end 時間需禁用與預約結束重疊的時段 (回傳時段 + 1 小時)
+        const endHours = hours.map(h => h + 1).filter(h => h <= 23);
+        Array.from(endHourSelect.options).forEach(opt => {
+          opt.disabled = false;
+          opt.classList.remove('text-muted');
+          if (endHours.includes(parseInt(opt.value))) {
+            opt.disabled = true;
+            opt.classList.add('text-muted');
+          }
         });
       } catch (e) {
         console.error('Failed to fetch unavailable hours', e);
