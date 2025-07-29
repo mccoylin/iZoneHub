@@ -236,10 +236,14 @@ const response = await fetch('/api/login', {
         if (savedUserJSON) {
             const savedUser = JSON.parse(savedUserJSON);
             showLoggedInState(savedUser.name);
+        } else {
+            // 使用者尚未登入或沒有儲存資訊，顯示預設的登出狀態
+            showLoggedOutState();
         }
     } catch (e) {
         console.error("Failed to parse user data from localStorage", e);
         localStorage.removeItem('currentUser');
+        showLoggedOutState();
     }
   });
 
