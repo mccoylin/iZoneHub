@@ -1,17 +1,96 @@
+# 這是 Spring Boot 的配置檔案，使用 YAML 格式
+# ===========================================
+# 應用程式的服務端口，及共用設定
+# ===========================================
 server:
   port: 8080
 
+# ===========================================
+# 預設啟用環境
+# ===========================================
+Spring:
+  profiles:
+    # 預設啟用 dev 環境
+    active: dev
 
+
+---       # 告訴 yaml 解析器這是分隔線，下面是另一組新的獨立設定
+# ===========================================
+# 只在 active: dev 環境下生效的設定
+# ===========================================
+# 資料庫連接資訊
 spring:
+  config:
+    activate:
+      on-profile: dev   # 開發環境設定
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/iZoneHub?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
-#    username: mccoy
-#    password: (C,ybJ27h%~YuEk~b!lA
-    username: root
-    password: 1234
+    # 使用 ${VARIABLE_NAME:defaultValue} 語法，若環境變數未設定，則使用預設值
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/iZoneHub?useSSL=false&serverTimezone=UTC
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:1234}
 
   jpa:
     hibernate:
-      ddl-auto: update
+      # 在生產環境中，建議將 ddl-auto 設為 validate 或 none，避免自動修改資料庫結構
+      ddl-auto: update # 或者 validate
 
+
+---
+# ===========================================
+# 只在 active: mcy 環境下生效的設定
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: mcy   # 開發環境設定
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 使用 ${VARIABLE_NAME:defaultValue} 語法，若環境變數未設定，則使用預設值
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/iZoneHub?useSSL=false&serverTimezone=UTC
+    username: ${DB_USER:mccoy}
+    password: ${DB_PASSWORD:(C,ybJ27h%~YuEk~b!lA}
+
+  jpa:
+    hibernate:
+      # 在生產環境中，建議將 ddl-auto 設為 validate 或 none，避免自動修改資料庫結構
+      ddl-auto: update # 或者 validate
+
+
+# ===========================================
+# # 使用環境變數 (Environment Variables) 連接到遠端資料庫 。
+# # 設定環境變數，視作業系統而定：
+#   export DB_HOST=192.168.1.100  # 換成你的遠端 IP
+#   export DB_PORT=3306
+#   export DB_USER=remote_user
+#   export DB_PASSWORD=your_super_secret_remote_password
+#
+# ===========================================
+# 指定 active : mcy 的設定方法有：
+# 1. 直接修改 application.yaml 檔案
+#    active: dev  ->   active: mcy
+#
+# 2. 在啟動應用程式時，透過命令列指派
+#   $ java -jar YOUR_APP_NAME --spring.profiles.active=mcy
+#
+# 3. 在 IntelliJ IDEA 中設定運行組態來指定 active profile。
+#   因為使用 IntelliJ IDEA Community Edition，會有些區別。
+#   步驟一：打開並複製運行組態。
+#      1.點擊右上角的下拉選單，選擇 "Edit Configurations..."。
+#      2.選擇你的 Application，然後點擊左上角的 "Copy Configuration" 圖示。
+#      3.將新的組態重新命名為有意義的名稱，例如 iZoneHub (mcy)。
+#   步驟二：新增並設定 VM 選項 (關鍵步驟)。
+#      1.在 iZoneHub (mcy) 的設定畫面中，找到 Modify options 這個連結。
+#      2.點擊它，在彈出的選單中，選擇 Add VM options。
+#      3.點擊後，你會發現設定畫面中多出了一個名為 VM options 的新輸入框。
+#      4.在這個 VM options 輸入框裡，輸入以下內容：
+#           -Dspring.profiles.active=mcy
+#        這行指令是什麼意思？
+#            •-D：是告訴 Java 虛擬機 (JVM)，我要設定一個系統屬性。
+#            •spring.profiles.active=mcy：屬性的名稱是 spring.profiles.active，它的值是 mcy。
+#        Spring Boot 會自動讀取這個屬性來啟用對應的 Profile。
+#   步驟三：儲存並運行
+#      1.點擊 "Apply" 或 "OK" 儲存你的設定。
+#      2.在右上角的下拉選單中選擇你建立的 iZoneHub (mcy)，然後點擊運行，Spring Boot 就會載入 application-mcy.yaml 的設定了！
+#
+#   可以重複以上步驟，建立一個其它的組態，用來模擬環境。
